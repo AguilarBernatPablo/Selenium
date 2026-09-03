@@ -12,6 +12,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import java.time.Duration;
@@ -72,11 +73,43 @@ public class LoginTest {
         testLog.pass("La alerta con el texto de credenciales inválidas apareció correctamente.");
     }
 
-    @AfterClass
-    public void finalizarSujeto() {
+    @Test
+    public void validarCredencialesCorrectas() {
+        testLog = reporte.createTest("Validar Login Exitoso", "Prueba para verificar el acceso con credenciales válidas");
+
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        testLog.info("Navegador iniciado con éxito.");
+
+        driver.get("http://localhost:3001");
+        WebElement emailBox = wait.until(
+                ExpectedConditions.elementToBeClickable(By.name("email"))
+        );
+        WebElement passBox = wait.until(
+                ExpectedConditions.elementToBeClickable(By.name("password"))
+        );
+
+        emailBox.sendKeys("admin@correo.com");
+        passBox.sendKeys("123", Keys.ENTER);
+
+        WebElement usuariosMenu = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.id("userDropdown"))
+        );
+
+        Assert.assertTrue(usuariosMenu.isDisplayed(), "El menú de usuarios no apareció después del login.");
+        testLog.pass("El acceso con credenciales correctas se realizó correctamente.");
+    }
+
+    @AfterMethod
+    public void cerrarNavegador() {
         if (driver != null) {
             driver.quit();
+            driver = null;
         }
+    }
+
+    @AfterClass
+    public void finalizarSujeto() {
         // Escribe y cierra el reporte HTML de manera obligatoria
         reporte.flush();
     }
